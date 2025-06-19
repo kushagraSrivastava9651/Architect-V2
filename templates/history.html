@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>DXF Upload History</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f9fafb;
+      margin: 0;
+      padding: 40px 20px;
+      color: #111827;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background-color: #fff;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      overflow-x: auto;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .stats-bar {
+      background-color: #f1f5f9;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+      font-size: 14px;
+      color: #475569;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 15px;
+      min-width: 1000px;
+    }
+
+    th, td {
+      padding: 14px 12px;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    th {
+      background-color: #f9fafb;
+      color: #334155;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 13px;
+      letter-spacing: 0.4px;
+    }
+
+    tr:hover { background-color: #f8fafc; }
+
+    .download-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .download-link {
+      color: #2563eb;
+      text-decoration: none;
+      font-size: 13px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      border: 1px solid transparent;
+      background-color: #f1f5f9;
+      transition: background-color 0.2s;
+    }
+
+    .download-link:hover {
+      background-color: #e0e7ff;
+      text-decoration: none;
+    }
+
+    .download-link.reference { border-color: #8b5cf6; color: #8b5cf6; }
+    .download-link.client { border-color: #06b6d4; color: #06b6d4; }
+    .download-link.modified { border-color: #10b981; color: #10b981; }
+    .download-link.excel { border-color: #f59e0b; color: #f59e0b; }
+
+    .check-type-badge {
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      display: inline-block;
+    }
+
+    .check-type-badge.self-check {
+      background-color: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .check-type-badge.reference-check {
+      background-color: #fef3c7;
+      color: #92400e;
+    }
+
+    .delete-button {
+      background-color: #ef4444;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .delete-button:hover {
+      background-color: #dc2626;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 24px;
+      font-size: 14px;
+      color: #2563eb;
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+      color: #1d4ed8;
+    }
+
+    .no-data {
+      text-align: center;
+      padding: 40px;
+      color: #64748b;
+    }
+
+    .tooltip {
+      position: relative;
+    }
+
+    .tooltip:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      background-color: #1f2937;
+      color: white;
+      padding: 6px 10px;
+      border-radius: 4px;
+      top: 110%;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      font-size: 12px;
+      z-index: 10;
+    }
+
+    @media (max-width: 768px) {
+      .container { padding: 20px; }
+      table { font-size: 13px; }
+      th, td { padding: 10px 6px; }
+      h1 { font-size: 22px; }
+      .download-links { flex-direction: column; gap: 4px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>DXF Upload History</h1>
+
+    {% if records %}
+      <div class="stats-bar">
+        Total Records: {{ records|length }}
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Check Type</th>
+            <th>Reference File</th>
+            <th>Client File</th>
+            <th>Downloads</th>
+            <th>Uploaded At</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in records %}
+          <tr>
+            <td>{{ row[0] }}</td>
+            <td>
+              <span class="check-type-badge {% if row[1] == 'Self Check' %}self-check{% else %}reference-check{% endif %}">
+                {{ row[1] }}
+              </span>
+            </td>
+            <td>
+              {% if row[2] %}
+                <span class="tooltip" data-tooltip="{{ row[2] }}">{{ row[2][:25] }}{% if row[2]|length > 25 %}...{% endif %}</span>
+              {% else %}
+                <span style="color:#9ca3af;">N/A</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if row[3] %}
+                <span class="tooltip" data-tooltip="{{ row[3] }}">{{ row[3][:25] }}{% if row[3]|length > 25 %}...{% endif %}</span>
+              {% else %}
+                <span style="color:#9ca3af;">N/A</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="download-links">
+                {% if row[2] %}
+                  <a href="/download/reference/{{ row[0] }}" class="download-link reference" target="_blank">Reference</a>
+                {% endif %}
+                {% if row[3] %}
+                  <a href="/download/client/{{ row[0] }}" class="download-link client" target="_blank">Client</a>
+                {% endif %}
+                {% if row[4] %}
+                  <a href="/download/modified/{{ row[0] }}" class="download-link modified" target="_blank">Modified</a>
+                {% endif %}
+                {% if row[5] %}
+                  <a href="/download/excel/{{ row[0] }}" class="download-link excel" target="_blank">Excel</a>
+                {% endif %}
+              </div>
+            </td>
+            <td>{{ row[6] }}</td>
+            <td>
+              <form action="/delete-entry/{{ row[0] }}" method="get" onsubmit="return confirm('Are you sure you want to delete this entry?');" style="display:inline;">
+                <button class="delete-button" type="submit">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="no-data">
+        <h3>No upload history found</h3>
+        <p>Upload some DXF files to see your history here.</p>
+      </div>
+    {% endif %}
+
+    <a class="back-link" href="/home">← Back to Home</a>
+  </div>
+</body>
+</html>

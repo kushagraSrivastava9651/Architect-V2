@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>{{ check_type }} Result</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: #f3f4f6;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: auto;
+      padding: 40px;
+      background-color: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      margin-bottom: 24px;
+      font-size: 28px;
+      color: #111827;
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 8px;
+    }
+
+    h3, h4 {
+      margin-top: 32px;
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+    .error {
+      background-color: #fee2e2;
+      color: #b91c1c;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    form {
+      margin-top: 20px;
+      padding: 24px;
+      background-color: #f9fafb;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+    }
+
+    label {
+      display: block;
+      margin: 10px 0 6px;
+      font-weight: 500;
+    }
+
+    input[type="file"],
+    input[type="number"],
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      background-color: #ffffff;
+      font-size: 14px;
+    }
+
+    .room-list, .text-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .room-entry, .text-entry {
+      background-color: #f9fafb;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .download-link, button {
+      display: inline-block;
+      background-color: #2563eb;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .download-link:hover,
+    button:hover {
+      background-color: #1e40af;
+    }
+
+    fieldset {
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+
+    legend {
+      font-weight: 600;
+      color: #374151;
+      padding: 0 6px;
+    }
+
+    .back-link {
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    .back-link a {
+      text-decoration: none;
+      color: #2563eb;
+      font-weight: 500;
+    }
+
+    .back-link a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 640px) {
+      .container {
+        padding: 20px;
+      }
+
+      input, button {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>{{ check_type }} Result</h1>
+
+    {% if error %}
+      <div class="error">{{ error }}</div>
+    {% endif %}
+
+    <form action="/upload-{{ check_type | lower | replace(' ', '-') }}" method="post" enctype="multipart/form-data">
+      <label>Select DXF File:</label>
+      <input type="file" name="file" accept=".dxf" required>
+
+      <label>Number of Rooms:</label>
+      <input type="number" name="room_count" id="roomCount" min="1" required>
+
+      <button type="button" onclick="generateRoomInputs()">➕ Add Rooms</button>
+
+      <div id="roomInputsContainer"></div>
+
+      <button type="submit">🚀 Upload & Submit</button>
+    </form>
+
+    {% if filename %}
+      <h3>📄 Original File: {{ filename }}</h3>
+
+      {% if rooms %}
+        <h4>🏠 Extracted Rooms and Texts</h4>
+        <ul class="room-list">
+          {% for room in rooms %}
+            <li class="room-entry">
+              <strong>Block:</strong> {{ room.BlockName }}<br>
+              <strong>Length:</strong> {{ room.LengthStr }}<br>
+              <strong>Breadth:</strong> {{ room.BreadthStr }}<br>
+              <strong>Area:</strong> {{ room.Area }} mm²<br>
+
+              {% if room.texts %}
+                <div><strong>Texts inside room:</strong></div>
+                <ul class="text-list">
+                  {% for t in room.texts %}
+                    <li class="text-entry">
+                      <strong>Original:</strong> {{ t.original }}<br>
+                      <strong>Cleaned:</strong> {{ t.cleaned }}<br>
+                      <strong>Position:</strong> {{ t.Position }}
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <div class="text-entry"><em>No text inside this room.</em></div>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      {% if submitted_rooms %}
+        <h4>📥 Submitted Room Dimensions</h4>
+        <ul class="room-list">
+          {% for room in submitted_rooms %}
+            <li class="room-entry">
+              <strong>{{ room.name }}</strong>: {{ room.width_feet }}'{{ room.width_inches }}" x {{ room.height_feet }}'{{ room.height_inches }}"
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      {% if texts %}
+        <h4>📝 Cleaned Texts Outside Rooms</h4>
+        <ul class="text-list">
+          {% for text in texts %}
+            <li class="text-entry">
+              <strong>Original:</strong> {{ text.original }}<br>
+              <strong>Cleaned:</strong> {{ text.cleaned }}<br>
+              <strong>Position:</strong> {{ text.position }}
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      {% if download_link %}
+        <p><a class="download-link" href="{{ download_link }}" download>📐 Download Updated DXF</a></p>
+      {% endif %}
+
+      {% if excel_link %}
+        <p><a class="download-link" href="{{ excel_link }}" download>📊 Download Match Report (Excel)</a></p>
+      {% endif %}
+    {% endif %}
+
+    <div class="back-link">
+      <a href="/home">⬅️ Back to Home</a>
+    </div>
+  </div>
+
+  <script>
+    function generateRoomInputs() {
+      const count = parseInt(document.getElementById("roomCount").value);
+      const container = document.getElementById("roomInputsContainer");
+      if (!count || count < 1) {
+        container.innerHTML = '';
+        return;
+      }
+
+      container.innerHTML = '';
+      for (let i = 1; i <= count; i++) {
+        const div = document.createElement("div");
+        div.innerHTML = `
+          <fieldset>
+            <legend>Room ${i}</legend>
+            <label>Name:</label>
+            <input type="text" name="room_name_${i}" required>
+            <label>Width:</label>
+            <input type="number" name="width_feet_${i}" placeholder="Feet" min="0" required> ft
+            <input type="number" name="width_inches_${i}" placeholder="Inches" min="0" max="11" required> in
+            <label>Height:</label>
+            <input type="number" name="height_feet_${i}" placeholder="Feet" min="0" required> ft
+            <input type="number" name="height_inches_${i}" placeholder="Inches" min="0" max="11" required> in
+          </fieldset>
+        `;
+        container.appendChild(div);
+      }
+    }
+  </script>
+</body>
+</html>

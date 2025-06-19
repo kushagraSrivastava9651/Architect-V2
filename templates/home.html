@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DXF Validator - Home</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: #ffffff;
+            padding: 40px 32px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            max-width: 420px;
+            width: 100%;
+        }
+
+        h1 {
+            margin-bottom: 32px;
+            font-size: 28px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        form {
+            margin-bottom: 16px;
+        }
+
+        button {
+            background-color: #2563eb;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        button:hover {
+            background-color: #1e40af;
+        }
+
+        .secondary {
+            background-color: #f9fafb;
+            color: #111827;
+            border: 1px solid #d1d5db;
+        }
+
+        .secondary:hover {
+            background-color: #e5e7eb;
+        }
+
+        .spacer {
+            height: 12px;
+        }
+
+        .icon {
+            display: inline-block;
+            font-size: 18px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 28px 20px;
+            }
+
+            button {
+                font-size: 15px;
+                padding: 10px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>DXF Validator</h1>
+
+        <form action="/self-check" method="get">
+            <button type="submit">
+                <span class="icon">🛠️</span> Run Self Check
+            </button>
+        </form>
+
+        <div class="spacer"></div>
+
+        <form action="/reference-check" method="get">
+            <button type="submit">
+                <span class="icon">📑</span> Run Reference Check
+            </button>
+        </form>
+
+        <div class="spacer"></div>
+
+        <form action="/history" method="get">
+            <button class="secondary" type="submit">
+                <span class="icon">📜</span> View History
+            </button>
+        </form>
+
+        <div class="spacer"></div>
+
+        <form action="/" method="get">
+            <button class="secondary" type="submit">
+                <span class="icon">🚪</span> Logout
+            </button>
+        </form>
+    </div>
+</body>
+</html>

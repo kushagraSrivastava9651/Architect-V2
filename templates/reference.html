@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reference Check - DWG Validator</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background-color: #f7f9fc;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 28px;
+            margin-bottom: 30px;
+            color: #2b4162;
+        }
+
+        .form-box {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        input[type="file"] {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background: #f1f1f1;
+        }
+
+        .button {
+            padding: 12px 20px;
+            background-color: #2563eb;
+            color: white;
+            font-weight: 500;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            transition: background-color 0.25s ease;
+            font-size: 15px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .button:hover {
+            background-color: #1e40af;
+        }
+
+        .error-message {
+            color: red;
+            margin-top: 10px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .results-box {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+
+        h3, h4 {
+            color: #2b4162;
+            margin-bottom: 12px;
+        }
+
+        .mismatch-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .mismatch-item {
+            background: #ffecec;
+            border-left: 4px solid #e74c3c;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+        }
+
+        .match-success {
+            background: #eafbea;
+            color: #2e7d32;
+            border-left: 4px solid #4caf50;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        .download-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .back-link a {
+            color: #555;
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 20px;
+                padding: 20px;
+            }
+
+            .button {
+                width: 100%;
+                font-size: 14px;
+            }
+
+            .download-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>📐 Reference Check</h2>
+
+        <form action="/reference-check" method="post" enctype="multipart/form-data" class="form-box">
+            <div class="form-group">
+                <label for="ref_file">📥 Upload <strong>Reference DXF</strong>:</label>
+                <input type="file" id="ref_file" name="ref_file" accept=".dxf" required>
+            </div>
+
+            <div class="form-group">
+                <label for="client_file">📥 Upload <strong>Client DXF</strong>:</label>
+                <input type="file" id="client_file" name="client_file" accept=".dxf" required>
+            </div>
+
+            <button type="submit" class="button">🔍 Compare</button>
+        </form>
+
+        {% if error %}
+            <p class="error-message">{{ error }}</p>
+        {% endif %}
+
+        {% if download_link %}
+        <div class="results-box">
+            <h3>✅ Reference Comparison Complete</h3>
+
+            {% if room_mismatches is not none %}
+                <h4>📏 Room Dimension Mismatches</h4>
+                {% if room_mismatches %}
+                    <ul class="mismatch-list">
+                        {% for mismatch in room_mismatches %}
+                            <li class="mismatch-item">❌ Room size {{ mismatch[0] }} x {{ mismatch[1] }} mm not in reference</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="match-success">✅ All room dimensions matched with reference.</p>
+                {% endif %}
+            {% endif %}
+
+            {% if door_mismatches is not none %}
+                <h4>🚪 Door Length Mismatches</h4>
+                {% if door_mismatches %}
+                    <ul class="mismatch-list">
+                        {% for mismatch in door_mismatches %}
+                            <li class="mismatch-item">❌ Door length {{ mismatch }} mm not in reference</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="match-success">✅ All door lengths matched with reference.</p>
+                {% endif %}
+            {% endif %}
+
+            {% if not room_mismatches and not door_mismatches %}
+                <p class="match-success">🎉 No mismatches found. Your files are fully aligned!</p>
+            {% endif %}
+
+            <div class="download-buttons">
+                <a href="{{ download_link }}" download class="button">📤 Visualized DXF</a>
+                {% if excel_link %}
+                    <a href="{{ excel_link }}" download class="button">📊 Excel Report</a>
+                {% endif %}
+                {% if client_file_link %}
+                    <a href="{{ client_file_link }}" download class="button">📂 Client DXF</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="back-link">
+            <a href="/home">⬅️ Back to Home</a>
+        </div>
+    </div>
+</body>
+</html>

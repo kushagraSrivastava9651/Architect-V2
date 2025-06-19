@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+ezdxf
+shapely
+jinja2
+python-multipart
+openpyxl
+pandas
+shapely
